@@ -1,6 +1,6 @@
 {
   "name": "m28n-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "cli for m28n",
   "main": "main.js",
   "author": "Matheus Valadares",
@@ -8,6 +8,7 @@
   "repository": "https://github.com/Matheus28/m28n-cli",
   "dependencies": {
     "commander": "^2.9.0",
+    "request": "^2.81.0",
     "tar": "^3.1.2",
     "tmp": "0.0.31"
   },
