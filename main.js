@@ -13,6 +13,11 @@ program
 	.option('--local', "Use local api server (for debugging purposes)")
 ;
 
+program.parse(process.argv);
+program.project = program.project || "./m28n.json";
+
+var cmdi = 0;
+
 function defaultAPICallback(err, httpResponse, body){
 	if(err) fatal(err);
 	console.log("API replied with:", body);
@@ -51,12 +56,6 @@ function getToken(){
 	
 	return program.token || process.env["M28N_ACCOUNT_TOKEN"];
 }
-
-program.parse(process.argv);
-program.project = program.project || "./m28n.json";
-
-var cmdi = 0;
-
 function accept(str){
 	if(program.args[cmdi] == str){
 		++cmdi;
