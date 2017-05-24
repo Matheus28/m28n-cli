@@ -137,7 +137,7 @@ if(accept("deploy")){
 		};
 		
 		console.log("Sending request to API...");
-		request.put({
+		request.post({
 			url: getAPIBaseURL() + "/project/",
 			formData: form,
 			headers: {
