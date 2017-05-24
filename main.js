@@ -95,7 +95,7 @@ function help(){
 	console.log([
 		"m28n deploy -- Deploys the current project",
 		"m28n env <env_json> -- Sets the environment variables that all servers use (write-only, useful for storing tokens)",
-		"m28n project create <identifier> -- Creates a new project",
+		"m28n create <identifier> -- Creates a new project",
 		"m28n version -- Prints the current deployed version",
 		"m28n rollback <version> -- Rolls back the current version to another version",
 	].join("\n"));
@@ -145,19 +145,15 @@ if(accept("deploy")){
 			}
 		}, defaultAPICallback);
 	});
-} else if(accept("project")){
-	if(accept("create")){
-		var identifier = demand("You must provide an identifier");
-		request.put({
-			url: getAPIBaseURL() + "/project/" + identifier,
-			body: "",
-			headers: {
-				'Authorization': 'AccountToken ' + getToken(),
-			},
-		}, defaultAPICallback);
-	}else{
-		help();
-	}
+} else if(accept("create")){
+	var identifier = demand("You must provide an identifier");
+	request.put({
+		url: getAPIBaseURL() + "/project/" + identifier,
+		body: "",
+		headers: {
+			'Authorization': 'AccountToken ' + getToken(),
+		},
+	}, defaultAPICallback);
 }else if(accept("env")){
 	var identifier = projectIdentifier();
 	var env = demand("You must provide an environment");
@@ -180,6 +176,7 @@ if(accept("deploy")){
 }else if(accept("rollback")){
 	var identifier = projectIdentifier();
 	var version = demand("You must provide a version to rollback to");
+	if(version != (version|0).toString()) fatal("Version must be an integer");
 	request.put({
 		url: getAPIBaseURL() + "/project/" + identifier + "/version",
 		body: JSON.stringify({ version: version|0 }),
@@ -189,6 +186,7 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else{
+	console.log(program.args);
 	help();
 }
 
