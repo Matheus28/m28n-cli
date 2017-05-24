@@ -93,11 +93,11 @@ function manifest(){
 
 function help(){
 	console.log([
-		"m28n deploy",
-		"m28n env <env_json>",
-		"m28n project create <identifier>",
-		"m28n version",
-		"m28n rollback <version>",
+		"m28n deploy -- Deploys the current project",
+		"m28n env <env_json> -- Sets the environment variables that all servers use (write-only, useful for storing tokens)",
+		"m28n project create <identifier> -- Creates a new project",
+		"m28n version -- Prints the current deployed version",
+		"m28n rollback <version> -- Rolls back the current version to another version",
 	].join("\n"));
 }
 
