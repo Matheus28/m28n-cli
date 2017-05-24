@@ -1,0 +1,17 @@
+{
+  "name": "m28n-cli",
+  "version": "1.0.0",
+  "description": "cli for m28n",
+  "main": "main.js",
+  "author": "Matheus Valadares",
+  "license": "MIT",
+  "repository": "https://github.com/Matheus28/m28n-cli",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "tar": "^3.1.2",
+    "tmp": "0.0.31"
+  },
+  "bin": {
+      "m28n": "./main.js"
+  }
+}
