@@ -159,6 +159,7 @@ if(accept("deploy")){
 		help();
 	}
 }else if(accept("env")){
+	var identifier = projectIdentifier();
 	var env = demand("You must provide an environment");
 	request.put({
 		url: getAPIBaseURL() + "/project/" + identifier + "/env",
