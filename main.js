@@ -98,6 +98,8 @@ function help(){
 		"m28n create <identifier> -- Creates a new project",
 		"m28n version -- Prints the current deployed version",
 		"m28n rollback <version> -- Rolls back the current version to another version",
+		"m28n linode -- Changes the linode API key associated with the account",
+		"m28n vultr -- Changes the vultr API key associated with the account",
 	].join("\n"));
 }
 
@@ -107,7 +109,27 @@ function projectIdentifier(){
 	return m.project;
 }
 
+function eoa(){
+	if(cmdi < program.args.length){
+		fatal("Unexpected arguments: " + program.args.slice(cmdi).join(', '));
+	}
+}
+
+function question(str, cb){
+	var readline = require("readline");
+	var rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+
+	rl.question(str, function(answer){
+		cb(answer);
+		rl.close();
+	});
+}
+
 if(accept("deploy")){
+	eoa();
 	getToken();
 	
 	var manifestObj = manifest();
@@ -145,7 +167,32 @@ if(accept("deploy")){
 			}
 		}, defaultAPICallback);
 	});
+}else if(accept("linode")){
+	eoa();
+	question("Linode API key: ", function(key){
+		request.put({
+			url: getAPIBaseURL() + "/account/linodeKey",
+			body: JSON.stringify({ key: key }),
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+				'Content-Type': 'application/json',
+			}
+		}, defaultAPICallback);
+	});
+}else if(accept("vultr")){
+	eoa();
+	question("Vultr API key: ", function(key){
+		request.put({
+			url: getAPIBaseURL() + "/account/vultrKey",
+			body: JSON.stringify({ key: key }),
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+				'Content-Type': 'application/json',
+			}
+		}, defaultAPICallback);
+	});
 } else if(accept("create")){
+	eoa();
 	var identifier = demand("You must provide an identifier");
 	request.put({
 		url: getAPIBaseURL() + "/project/" + identifier,
@@ -155,6 +202,7 @@ if(accept("deploy")){
 		},
 	}, defaultAPICallback);
 }else if(accept("env")){
+	eoa();
 	var identifier = projectIdentifier();
 	var env = demand("You must provide an environment");
 	request.put({
@@ -166,6 +214,7 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else if(accept("version")){
+	eoa();
 	var identifier = projectIdentifier();
 	request.get({
 		url: getAPIBaseURL() + "/project/" + identifier + "/version",
@@ -174,6 +223,8 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else if(accept("rollback")){
+	eoa();
+	
 	var identifier = projectIdentifier();
 	var version = demand("You must provide a version to rollback to");
 	if(version != (version|0).toString()) fatal("Version must be an integer");
@@ -186,7 +237,7 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else{
-	console.log(program.args);
 	help();
+	eoa();
 }
 
