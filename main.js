@@ -192,8 +192,8 @@ if(accept("deploy")){
 		}, defaultAPICallback);
 	});
 } else if(accept("create")){
-	eoa();
 	var identifier = demand("You must provide an identifier");
+	eoa();
 	request.put({
 		url: getAPIBaseURL() + "/project/" + identifier,
 		body: "",
@@ -202,9 +202,9 @@ if(accept("deploy")){
 		},
 	}, defaultAPICallback);
 }else if(accept("env")){
-	eoa();
 	var identifier = projectIdentifier();
 	var env = demand("You must provide an environment");
+	eoa();
 	request.put({
 		url: getAPIBaseURL() + "/project/" + identifier + "/env",
 		body: env,
@@ -214,8 +214,8 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else if(accept("version")){
-	eoa();
 	var identifier = projectIdentifier();
+	eoa();
 	request.get({
 		url: getAPIBaseURL() + "/project/" + identifier + "/version",
 		headers: {
@@ -223,10 +223,10 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else if(accept("rollback")){
-	eoa();
-	
 	var identifier = projectIdentifier();
 	var version = demand("You must provide a version to rollback to");
+	eoa();
+	
 	if(version != (version|0).toString()) fatal("Version must be an integer");
 	request.put({
 		url: getAPIBaseURL() + "/project/" + identifier + "/version",
@@ -236,6 +236,20 @@ if(accept("deploy")){
 			'Content-Type': 'application/json',
 		}
 	}, defaultAPICallback);
+}else if(accept("account")){
+	if(accept("create")){
+		eoa();
+		
+		request.post({
+			url: getAPIBaseURL() + "/account/",
+			body: "",
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+			},
+		}, defaultAPICallback);
+	}else{
+		help();
+	}
 }else{
 	help();
 	eoa();
