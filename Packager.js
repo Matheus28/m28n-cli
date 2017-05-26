@@ -28,6 +28,8 @@ if(global.PACKAGER_USE_S3){
 
 
 module.exports = exports = function(files, direct, cb){
+	files = files.concat(); // tar eats our array?
+	
 	var tmpFilename = tmp.fileSync().name;
 	
 	//console.log("Creating temporary file " + tmpFilename);
