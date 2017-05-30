@@ -286,6 +286,34 @@ if(accept("deploy")){
 				'Authorization': 'AccountToken ' + getToken(),
 			},
 		}, defaultAPICallback);
+	}else if(accept("projects")){
+		request.get({
+			url: getAPIBaseURL() + "/account/projects",
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+			},
+		}, function(err, res, body){
+			if(err) return fatal(err);
+			
+			var obj = grabObject(body);
+			if(!obj.projects) return fatal("API replied with unexpected response");
+			
+			if(obj.projects.length == 0){
+				console.log("Account doesn't have any projects");
+			}else{
+				obj.projects.forEach(function(project){
+					console.log(" - " + project.id);
+					project.versions.forEach(function(version){
+						console.log("    v" + version.num
+							+ " - active: " + (version.isActive ? "yes" : "no")
+							+ ", services: " + (version.numServices)
+						);
+					})
+					console.log("");
+				});
+			}
+			
+		});
 	}else{
 		help();
 	}
