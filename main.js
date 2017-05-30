@@ -109,9 +109,22 @@ function projectIdentifier(){
 	return m.project;
 }
 
+function hasMoreArgs(){
+	return cmdi < program.args.length;
+}
+
 function eoa(){
-	if(cmdi < program.args.length){
+	if(hasMoreArgs()){
 		fatal("Unexpected arguments: " + program.args.slice(cmdi).join(', '));
+	}
+}
+
+function grabObject(body){
+	if(typeof body != 'string') return body;
+	try {
+		return JSON.parse(body);
+	}catch(e){
+		fatal("Failed to parse JSON from API: " + body);
 	}
 }
 
@@ -224,18 +237,44 @@ if(accept("deploy")){
 	}, defaultAPICallback);
 }else if(accept("rollback")){
 	var identifier = projectIdentifier();
-	var version = demand("You must provide a version to rollback to");
-	eoa();
 	
-	if(version != (version|0).toString()) fatal("Version must be an integer");
-	request.put({
-		url: getAPIBaseURL() + "/project/" + identifier + "/version",
-		body: JSON.stringify({ version: version|0 }),
-		headers: {
-			'Authorization': 'AccountToken ' + getToken(),
-			'Content-Type': 'application/json',
-		}
-	}, defaultAPICallback);
+	if(hasMoreArgs()){
+		var version = demand("You must provide a version to rollback to");
+		if(version != (version|0).toString()) fatal("Version must be an integer");
+		eoa();
+		setVersion(version);
+	}else{
+		eoa();
+		
+		console.log("Fetching current version...");
+		request.get({
+			url: getAPIBaseURL() + "/project/" + identifier + "/version",
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+			}
+		}, function(err, res, body){
+			if(err) fatal(err);
+			
+			var obj = grabObject(body);
+			if(!obj.version) fatal("Couldn't identify current version in API reply: " + body);
+			
+			var nextVersion = obj.version - 1;
+			console.log("Current version is " + obj.version + ", trying to downgrade to " + nextVersion);
+			setVersion(nextVersion);
+		});
+	}
+	
+	function setVersion(version){
+		request.put({
+			url: getAPIBaseURL() + "/project/" + identifier + "/version",
+			body: JSON.stringify({ version: version|0 }),
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+				'Content-Type': 'application/json',
+			}
+		}, defaultAPICallback);
+	}
+	
 }else if(accept("account")){
 	if(accept("create")){
 		eoa();
