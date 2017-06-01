@@ -205,7 +205,10 @@ if(accept("deploy")){
 				t.cell("Tags", JSON.stringify(service.tags));
 				t.cell("Active servers", service.numActiveServers);
 				t.cell("Enabled servers", service.numEnabledServers);
-				t.cell("Load", service.avgServerLoad.toFixed(5));
+				t.cell("Avg Load", service.avgServerLoad.toFixed(4));
+				if(typeof service.totalServerLoad == "number"){
+					t.cell("Total Load", service.totalServerLoad.toFixed(4));
+				}
 				t.newRow();
 			});
 		});

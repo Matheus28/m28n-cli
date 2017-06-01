@@ -1,6 +1,6 @@
 {
   "name": "m28n-cli",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "cli for m28n",
   "main": "main.js",
   "author": "Matheus Valadares",
