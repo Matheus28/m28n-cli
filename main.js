@@ -180,6 +180,37 @@ if(accept("deploy")){
 			}
 		}, defaultAPICallback);
 	});
+}else if(accept("status")){
+	eoa();
+	var identifier = projectIdentifier();
+	
+	request.get({
+		url: getAPIBaseURL() + "/project/" + identifier,
+		headers: {
+			'Authorization': 'AccountToken ' + getToken(),
+		}
+	}, function(err, res, body){
+		if(err) return fatal(err);
+		
+		var obj = grabObject(body);
+		if(!obj.id) return fatal("API replied with unexpected response");
+		
+		console.log("Project " + obj.id);
+		console.log("");
+		obj.versions.forEach(function(version){
+			console.log(" - Version " + version.num + (version.isActive ? " (active)": ""));
+			console.log("");
+			version.services.forEach(function(service){
+				console.log("   - Service " + service.id);
+				console.log("       Region: " + service.region);
+				console.log("       Tags: " + JSON.stringify(service.tags));
+				console.log("       Active servers: " + service.numActiveServers);
+				console.log("       Enabled servers: " + service.numEnabledServers);
+				console.log("       Average server load: " + service.avgServerLoad);
+				console.log("");
+			});
+		});
+	});
 }else if(accept("linode")){
 	eoa();
 	question("Linode API key: ", function(key){
