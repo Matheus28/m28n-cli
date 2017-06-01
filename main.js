@@ -5,6 +5,7 @@ var path = require("path");
 var fs = require("fs");
 var request = require("request");
 var packager = require("./Packager.js");
+var Table = require("easy-table");
 
 
 program
@@ -195,21 +196,23 @@ if(accept("deploy")){
 		var obj = grabObject(body);
 		if(!obj.id) return fatal("API replied with unexpected response");
 		
-		console.log("Project " + obj.id);
-		console.log("");
+		var t = new Table();
 		obj.versions.forEach(function(version){
-			console.log(" - Version " + version.num + (version.isActive ? " (active)": ""));
-			console.log("");
 			version.services.forEach(function(service){
-				console.log("   - Service " + service.id);
-				console.log("       Region: " + service.region);
-				console.log("       Tags: " + JSON.stringify(service.tags));
-				console.log("       Active servers: " + service.numActiveServers);
-				console.log("       Enabled servers: " + service.numEnabledServers);
-				console.log("       Average server load: " + service.avgServerLoad);
-				console.log("");
+				t.cell("Version", version.num + (version.isActive ? '*' : ''));
+				t.cell("ID", service.id);
+				t.cell("Region", service.region);
+				t.cell("Tags", JSON.stringify(service.tags));
+				t.cell("Active servers", service.numActiveServers);
+				t.cell("Enabled servers", service.numEnabledServers);
+				t.cell("Load", service.avgServerLoad.toFixed(5));
+				t.newRow();
 			});
 		});
+		
+		console.log(t.toString());
+		console.log("* Active version");
+		console.log("");
 	});
 }else if(accept("linode")){
 	eoa();
