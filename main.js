@@ -95,6 +95,7 @@ function manifest(){
 function help(){
 	console.log([
 		"m28n deploy -- Deploys the current project",
+		"m28n status -- Prints the status of the current project",
 		"m28n env <env_json> -- Sets the environment variables that all servers use (write-only, useful for storing tokens)",
 		"m28n create <identifier> -- Creates a new project",
 		"m28n version -- Prints the current deployed version",
