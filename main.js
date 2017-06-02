@@ -96,6 +96,7 @@ function help(){
 	console.log([
 		"m28n deploy -- Deploys the current project",
 		"m28n status -- Prints the status of the current project",
+		"m28n servers -- Prints all servers associated with the current project",
 		"m28n env <env_json> -- Sets the environment variables that all servers use (write-only, useful for storing tokens)",
 		"m28n create <identifier> -- Creates a new project",
 		"m28n version -- Prints the current deployed version",
@@ -211,6 +212,43 @@ if(accept("deploy")){
 					t.cell("Total Load", service.totalServerLoad.toFixed(4));
 				}
 				t.newRow();
+			});
+		});
+		
+		console.log(t.toString());
+		console.log("* Active version");
+		console.log("");
+	});
+}else if(accept("servers")){
+	eoa();
+	var identifier = projectIdentifier();
+	
+	request.get({
+		url: getAPIBaseURL() + "/project/" + identifier + "/servers/",
+		headers: {
+			'Authorization': 'AccountToken ' + getToken(),
+		}
+	}, function(err, res, body){
+		if(err) return fatal(err);
+		
+		var obj = grabObject(body);
+		if(!obj.id) return fatal("API replied with unexpected response");
+		
+		var t = new Table();
+		obj.versions.forEach(function(version){
+			version.services.forEach(function(service){
+				var tags = JSON.stringify(service.tags);
+				
+				service.servers.forEach(function(server){
+					t.cell("Version", version.num + (version.isActive ? '*' : ''));
+					t.cell("IPv4", server.ipv4);
+					t.cell("IPv6", server.ipv6);
+					t.cell("Region", service.region);
+					t.cell("Tags", tags);
+					t.cell("Enabled", server.isEnabled);
+					t.cell("Load", server.load.toFixed(4));
+					t.newRow();
+				});
 			});
 		});
 		
