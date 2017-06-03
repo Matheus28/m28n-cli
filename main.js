@@ -10,6 +10,7 @@ var Table = require("easy-table");
 
 program
 	.option('-p, --project <filename>', "Use a different project manifest other than ./m28n.json")
+	.option('-i, --project-id <identifier>', "Use a different project identifier")
 	.option('-t, --token <token>', "Account token to use")
 	.option('--local', "Use local api server (for debugging purposes)")
 ;
@@ -89,6 +90,8 @@ function manifest(){
 		fatal("Failed to parse manifest, it isn't valid JSON: " + e);
 	}
 	
+	if(program.projectId) manifestObj.project = program.projectId;
+	
 	return manifestObj;
 }
 
@@ -107,6 +110,7 @@ function help(){
 }
 
 function projectIdentifier(){
+	if(program.projectId) return program.projectId;
 	var m = manifest();
 	if(typeof m.project != 'string') fatal("Project manifest must have a \"project\" key");
 	return m.project;
@@ -196,7 +200,7 @@ if(accept("deploy")){
 		if(err) return fatal(err);
 		
 		var obj = grabObject(body);
-		if(!obj.id) return fatal("API replied with unexpected response");
+		if(!obj.id) return fatal("API replied with unexpected response: " + body);
 		
 		var t = new Table();
 		obj.versions.forEach(function(version){
@@ -232,7 +236,7 @@ if(accept("deploy")){
 		if(err) return fatal(err);
 		
 		var obj = grabObject(body);
-		if(!obj.id) return fatal("API replied with unexpected response");
+		if(!obj.id) return fatal("API replied with unexpected response: " + body);
 		
 		var t = new Table();
 		obj.versions.forEach(function(version){
@@ -372,7 +376,7 @@ if(accept("deploy")){
 			if(err) return fatal(err);
 			
 			var obj = grabObject(body);
-			if(!obj.projects) return fatal("API replied with unexpected response");
+			if(!obj.projects) return fatal("API replied with unexpected response: " + body);
 			
 			if(obj.projects.length == 0){
 				console.log("Account doesn't have any projects");
