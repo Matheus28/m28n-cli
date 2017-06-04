@@ -12,6 +12,7 @@ program
 	.option('-p, --project <filename>', "Use a different project manifest other than ./m28n.json")
 	.option('-i, --project-id <identifier>', "Use a different project identifier")
 	.option('-t, --token <token>', "Account token to use")
+	.option('--override <json>', "Overrides contents of the manifest with this")
 	.option('--local', "Use local api server (for debugging purposes)")
 ;
 
@@ -91,6 +92,18 @@ function manifest(){
 	}
 	
 	if(program.projectId) manifestObj.project = program.projectId;
+	if(program.override){
+		var obj;
+		try {
+			obj = JSON.parse(program.override);
+		}catch(e){
+			fatal("Failed to parse JSON in --override: " + e);
+		}
+		
+		for(var i in obj){
+			manifestObj[i] = obj[i];
+		}
+	}
 	
 	return manifestObj;
 }
