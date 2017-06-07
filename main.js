@@ -218,14 +218,7 @@ if(accept("deploy")){
 		var t = new Table();
 		obj.versions.forEach(function(version){
 			version.services.forEach(function(service){
-				var versionSymbol = "";
-				if(version.warmingUp){
-					versionSymbol = "**";
-				}else if(version.isActive){
-					versionSymbol = "*";
-				}
-				
-				t.cell("Version", version.num + versionSymbol);
+				t.cell("Version", version.num + " (" + version.state + ")");
 				t.cell("ID", service.id);
 				t.cell("Region", service.region);
 				t.cell("Tags", JSON.stringify(service.tags));
@@ -240,8 +233,6 @@ if(accept("deploy")){
 		});
 		
 		console.log(t.toString());
-		console.log("* Active version");
-		console.log("** Active version (warming up)");
 		console.log("");
 	});
 }else if(accept("servers")){
@@ -265,14 +256,7 @@ if(accept("deploy")){
 				var tags = JSON.stringify(service.tags);
 				
 				service.servers.forEach(function(server){
-					var versionSymbol = "";
-					if(version.warmingUp){
-						versionSymbol = "**";
-					}else if(version.isActive){
-						versionSymbol = "*";
-					}
-					
-					t.cell("Version", version.num + versionSymbol);
+					t.cell("Version", version.num + " (" + version.state + ")");
 					t.cell("IPv4", server.ipv4);
 					t.cell("IPv6", server.ipv6);
 					t.cell("Region", service.region);
