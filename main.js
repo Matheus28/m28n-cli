@@ -234,7 +234,6 @@ if(accept("deploy")){
 		});
 		
 		console.log(t.toString());
-		console.log("");
 	});
 }else if(accept("servers")){
 	eoa();
@@ -271,9 +270,6 @@ if(accept("deploy")){
 		});
 		
 		console.log(t.toString());
-		console.log("* Active version");
-		console.log("** Active version (warming up)");
-		console.log("");
 	});
 }else if(accept("linode")){
 	eoa();
