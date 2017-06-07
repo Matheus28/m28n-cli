@@ -216,6 +216,7 @@ if(accept("deploy")){
 		if(!obj.id) return fatal("API replied with unexpected response: " + body);
 		
 		var t = new Table();
+		obj.versions.sort(function(a,b){ return a.num - b.num; });
 		obj.versions.forEach(function(version){
 			version.services.forEach(function(service){
 				t.cell("Version", version.num + " (" + version.state + ")");
@@ -251,6 +252,7 @@ if(accept("deploy")){
 		if(!obj.id) return fatal("API replied with unexpected response: " + body);
 		
 		var t = new Table();
+		obj.versions.sort(function(a,b){ return a.num - b.num; });
 		obj.versions.forEach(function(version){
 			version.services.forEach(function(service){
 				var tags = JSON.stringify(service.tags);
