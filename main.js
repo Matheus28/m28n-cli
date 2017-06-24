@@ -392,16 +392,21 @@ if(accept("deploy")){
 			if(obj.projects.length == 0){
 				console.log("Account doesn't have any projects");
 			}else{
+				var t = new Table();
+				
+				obj.projects.sort(function(a, b){ return a.id < b.id ? -1 : 1; });
 				obj.projects.forEach(function(project){
-					console.log(" - " + project.id);
+					project.versions.sort(function(a, b){ return a.num - b.num; });
 					project.versions.forEach(function(version){
-						console.log("    v" + version.num
-							+ " - active: " + (version.isActive ? "yes" : "no")
-							+ ", services: " + (version.numServices)
-						);
+						t.cell("Project", project.id);
+						t.cell("Version", version.num);
+						t.cell("State", version.state);
+						t.cell("Num Services", version.numServices);
+						t.newRow();
 					})
-					console.log("");
 				});
+				
+				console.log(t.toString());
 			}
 			
 		});
