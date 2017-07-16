@@ -161,6 +161,27 @@ function question(str, cb){
 	});
 }
 
+function renderTables(err, res, body){
+	if(err) return fatal(err);
+	
+	var obj = grabObject(body);
+	if(!obj.tables) return fatal("API replied with unexpected response: " + body);
+	
+	obj.tables.forEach(function(data){
+		var t = new Table();
+		
+		data.values.forEach(function(row){
+			row.forEach(function(_, i){
+				t.cell(data.headers[i], row[i]);
+			});
+			
+			t.newRow();
+		});
+		
+		console.log(t.toString());
+	});
+}
+
 if(accept("deploy")){
 	eoa();
 	getToken();
@@ -209,32 +230,7 @@ if(accept("deploy")){
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
 		}
-	}, function(err, res, body){
-		if(err) return fatal(err);
-		
-		var obj = grabObject(body);
-		if(!obj.id) return fatal("API replied with unexpected response: " + body);
-		
-		var t = new Table();
-		obj.versions.sort(function(a,b){ return a.num - b.num; });
-		obj.versions.forEach(function(version){
-			version.services.forEach(function(service){
-				t.cell("Version", version.num + " (" + version.state + ")");
-				t.cell("ID", service.id);
-				t.cell("Region", service.region);
-				t.cell("Tags", JSON.stringify(service.tags));
-				t.cell("Active servers", service.numActiveServers);
-				t.cell("Enabled servers", service.numEnabledServers);
-				t.cell("Avg Load", service.avgServerLoad.toFixed(4));
-				if(typeof service.totalServerLoad == "number"){
-					t.cell("Total Load", service.totalServerLoad.toFixed(4));
-				}
-				t.newRow();
-			});
-		});
-		
-		console.log(t.toString());
-	});
+	}, renderTables);
 }else if(accept("servers")){
 	eoa();
 	var identifier = projectIdentifier();
@@ -244,33 +240,7 @@ if(accept("deploy")){
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
 		}
-	}, function(err, res, body){
-		if(err) return fatal(err);
-		
-		var obj = grabObject(body);
-		if(!obj.id) return fatal("API replied with unexpected response: " + body);
-		
-		var t = new Table();
-		obj.versions.sort(function(a,b){ return a.num - b.num; });
-		obj.versions.forEach(function(version){
-			version.services.forEach(function(service){
-				var tags = JSON.stringify(service.tags);
-				
-				service.servers.forEach(function(server){
-					t.cell("Version", version.num + " (" + version.state + ")");
-					t.cell("IPv4", server.ipv4);
-					t.cell("IPv6", server.ipv6);
-					t.cell("Region", service.region);
-					t.cell("Tags", tags);
-					t.cell("Enabled", server.isEnabled);
-					t.cell("Load", server.load.toFixed(4));
-					t.newRow();
-				});
-			});
-		});
-		
-		console.log(t.toString());
-	});
+	}, renderTables);
 }else if(accept("linode")){
 	eoa();
 	question("Linode API key: ", function(key){
