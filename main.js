@@ -111,12 +111,13 @@ function manifest(){
 function help(){
 	console.log([
 		"m28n deploy -- Deploys the current project",
+		"m28n deploy manifest [version] -- Updates the manifest of a specific version, or the current if none is specified",
 		"m28n status -- Prints the status of the current project",
 		"m28n servers -- Prints all servers associated with the current project",
 		"m28n env <env_json> -- Sets the environment variables that all servers use (write-only, useful for storing tokens)",
 		"m28n create <identifier> -- Creates a new project",
 		"m28n version -- Prints the current deployed version",
-		"m28n rollback <version> -- Rolls back the current version to another version",
+		"m28n rollback [version] -- Rolls back the current version to another version",
 		"m28n linode -- Changes the linode API key associated with the account",
 		"m28n vultr -- Changes the vultr API key associated with the account",
 	].join("\n"));
@@ -182,61 +183,106 @@ function renderTables(err, res, body){
 	});
 }
 
+function withCurrentVersion(fn){
+	console.log("Fetching current version...");
+	request.get({
+		url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/version",
+		headers: {
+			'Authorization': 'AccountToken ' + getToken(),
+		}
+	}, function(err, res, body){
+		if(err) fatal(err);
+		
+		var obj = grabObject(body);
+		if(!obj.version) fatal("Couldn't identify current version in API reply: " + body);
+		
+		console.log("Current version is " + obj.version);
+		fn(obj.version);
+	});
+}
+
 if(accept("deploy")){
-	eoa();
-	getToken();
-	
-	var manifestObj = manifest();
-	
-	// So we can package from that directory
-	process.chdir(path.dirname(program.project));
-	
-	if(!manifestObj.package || !Array.isArray(manifestObj.package)){
-		fatal("Manifest should have a top level array of strings called 'package'");
-	}
-	
-	for(var i = 0; i < manifestObj.length; ++i){
-		if(typeof manifestObj[i] != 'string'){
+	if(accept("manifest")){
+		
+		var updateManifest = function(version){
+			console.log("Updating manifest...");
+			
+			request.put({
+				url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/manifest",
+				body: JSON.stringify({ version: version, manifest: manifest() }),
+				headers: {
+					'Authorization': 'AccountToken ' + getToken(),
+					'Content-Type': 'application/json',
+				}
+			}, defaultAPICallback);
+		}
+		
+		if(hasMoreArgs()){
+			var version = demand("You must provide a version to rollback to");
+			if(version != (version|0).toString()) fatal("Version must be an integer");
+			eoa();
+			updateManifest(version);
+		}else{
+			eoa();
+			withCurrentVersion(updateManifest);
+			
+		}
+	}else{
+		eoa();
+		getToken(); // Makes sure we have an account token before we pack things up
+		
+		var manifestObj = manifest();
+		
+		// So we can package from that directory
+		process.chdir(path.dirname(program.project));
+		
+		if(!manifestObj.package || !Array.isArray(manifestObj.package)){
 			fatal("Manifest should have a top level array of strings called 'package'");
 		}
+		
+		for(var i = 0; i < manifestObj.length; ++i){
+			if(typeof manifestObj[i] != 'string'){
+				fatal("Manifest should have a top level array of strings called 'package'");
+			}
+		}
+		
+		console.log("Packaging up...");
+		packager(manifestObj.package, false, function(err, res){
+			if(err) return fatal(err);
+			
+			console.log("Package created at " + res.filename);
+				
+			var form = {
+				package: fs.createReadStream(res.filename),
+				manifest: JSON.stringify(manifestObj),
+			};
+			
+			console.log("Sending request to API...");
+			request.post({
+				url: getAPIBaseURL() + "/project/",
+				formData: form,
+				headers: {
+					'Authorization': 'AccountToken ' + getToken(),
+				}
+			}, defaultAPICallback);
+		});
 	}
 	
-	console.log("Packaging up...");
-	packager(manifestObj.package, false, function(err, res){
-		if(err) return fatal(err);
-		
-		console.log("Package created at " + res.filename);
-			
-		var form = {
-			package: fs.createReadStream(res.filename),
-			manifest: JSON.stringify(manifestObj),
-		};
-		
-		console.log("Sending request to API...");
-		request.post({
-			url: getAPIBaseURL() + "/project/",
-			formData: form,
-			headers: {
-				'Authorization': 'AccountToken ' + getToken(),
-			}
-		}, defaultAPICallback);
-	});
+	
 }else if(accept("status")){
 	eoa();
-	var identifier = projectIdentifier();
 	
 	request.get({
-		url: getAPIBaseURL() + "/project/" + identifier,
+		url: getAPIBaseURL() + "/project/" + projectIdentifier(),
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
 		}
 	}, renderTables);
 }else if(accept("servers")){
 	eoa();
-	var identifier = projectIdentifier();
 	
 	request.get({
-		url: getAPIBaseURL() + "/project/" + identifier + "/servers/",
+		url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/servers/",
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
 		}
@@ -276,11 +322,10 @@ if(accept("deploy")){
 		},
 	}, defaultAPICallback);
 }else if(accept("env")){
-	var identifier = projectIdentifier();
 	var env = demand("You must provide an environment");
 	eoa();
 	request.put({
-		url: getAPIBaseURL() + "/project/" + identifier + "/env",
+		url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/env",
 		body: env,
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
@@ -288,46 +333,17 @@ if(accept("deploy")){
 		}
 	}, defaultAPICallback);
 }else if(accept("version")){
-	var identifier = projectIdentifier();
 	eoa();
 	request.get({
-		url: getAPIBaseURL() + "/project/" + identifier + "/version",
+		url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/version",
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
 		}
 	}, defaultAPICallback);
 }else if(accept("rollback")){
-	var identifier = projectIdentifier();
-	
-	if(hasMoreArgs()){
-		var version = demand("You must provide a version to rollback to");
-		if(version != (version|0).toString()) fatal("Version must be an integer");
-		eoa();
-		setVersion(version);
-	}else{
-		eoa();
-		
-		console.log("Fetching current version...");
-		request.get({
-			url: getAPIBaseURL() + "/project/" + identifier + "/version",
-			headers: {
-				'Authorization': 'AccountToken ' + getToken(),
-			}
-		}, function(err, res, body){
-			if(err) fatal(err);
-			
-			var obj = grabObject(body);
-			if(!obj.version) fatal("Couldn't identify current version in API reply: " + body);
-			
-			var nextVersion = obj.version - 1;
-			console.log("Current version is " + obj.version + ", trying to downgrade to " + nextVersion);
-			setVersion(nextVersion);
-		});
-	}
-	
-	function setVersion(version){
+	var rollbackTo = function(version){
 		request.put({
-			url: getAPIBaseURL() + "/project/" + identifier + "/version",
+			url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/version",
 			body: JSON.stringify({ version: version|0 }),
 			headers: {
 				'Authorization': 'AccountToken ' + getToken(),
@@ -336,6 +352,18 @@ if(accept("deploy")){
 		}, defaultAPICallback);
 	}
 	
+	if(hasMoreArgs()){
+		var version = demand("You must provide a version to rollback to");
+		if(version != (version|0).toString()) fatal("Version must be an integer");
+		eoa();
+		rollbackTo(version);
+	}else{
+		eoa();
+		
+		withCurrentVersion(function(curVersion){
+			rollbackTo(curVersion - 1);
+		});
+	}
 }else if(accept("account")){
 	if(accept("create")){
 		eoa();
