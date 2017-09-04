@@ -114,6 +114,7 @@ function help(){
 		"m28n deploy manifest [version] -- Updates the manifest of a specific version, or the current if none is specified",
 		"m28n status -- Prints the status of the current project",
 		"m28n servers -- Prints all servers associated with the current project",
+		"m28n logs -- Prints some logs m28n generates internally referring to this project",
 		"m28n env <env_json> -- Sets the environment variables that all servers use (write-only, useful for storing tokens)",
 		"m28n create <identifier> -- Creates a new project",
 		"m28n version -- Prints the current deployed version",
@@ -141,6 +142,7 @@ function eoa(){
 }
 
 function grabObject(body){
+	if(body == null) throw new Error("request body was " + body);
 	if(typeof body != 'string') return body;
 	try {
 		return JSON.parse(body);
@@ -287,6 +289,26 @@ if(accept("deploy")){
 			'Authorization': 'AccountToken ' + getToken(),
 		}
 	}, renderTables);
+}else if(accept("logs")){
+	eoa();
+	
+	request.get({
+		url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/logs",
+		headers: {
+			'Authorization': 'AccountToken ' + getToken(),
+		}
+	}, function(err, res, body){
+		if(err) return fatal(err);
+		
+		var obj = grabObject(body);
+		if(typeof obj.logs != "string") return fatal("API replied with unexpected response: " + body);
+		
+		if(obj.logs.length == 0){
+			console.log("No logs found");
+		}else{
+			console.log(obj.logs);
+		}
+	});
 }else if(accept("linode")){
 	eoa();
 	question("Linode API key: ", function(key){
