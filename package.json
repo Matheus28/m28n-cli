@@ -1,6 +1,6 @@
 {
   "name": "m28n-cli",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "cli for m28n",
   "main": "main.js",
   "author": "Matheus Valadares",
@@ -12,7 +12,7 @@
     "npm": "^5.8.0",
     "request": "^2.81.0",
     "strip-json-comments": "^2.0.1",
-    "tar": "^3.1.2",
+    "tar": "4.x",
     "tmp": "0.0.31"
   },
   "bin": {
