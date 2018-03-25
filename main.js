@@ -121,6 +121,7 @@ function help(){
 		"m28n rollback [version] -- Rolls back the current version to another version",
 		"m28n linode -- Changes the linode API key associated with the account",
 		"m28n vultr -- Changes the vultr API key associated with the account",
+		"m28n digitalocean -- Changes the Digital Ocean API key associated with the account",
 	].join("\n"));
 }
 
@@ -326,6 +327,18 @@ if(accept("deploy")){
 	question("Vultr API key: ", function(key){
 		request.put({
 			url: getAPIBaseURL() + "/account/vultrKey",
+			body: JSON.stringify({ key: key }),
+			headers: {
+				'Authorization': 'AccountToken ' + getToken(),
+				'Content-Type': 'application/json',
+			}
+		}, defaultAPICallback);
+	});
+}else if(accept("digitalocean")){
+	eoa();
+	question("Digital Ocean API key: ", function(key){
+		request.put({
+			url: getAPIBaseURL() + "/account/digitaloceanKey",
 			body: JSON.stringify({ key: key }),
 			headers: {
 				'Authorization': 'AccountToken ' + getToken(),
