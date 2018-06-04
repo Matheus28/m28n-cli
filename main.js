@@ -276,7 +276,7 @@ if(accept("deploy")){
 	eoa();
 	
 	request.get({
-		url: getAPIBaseURL() + "/project/" + projectIdentifier(),
+		url: getAPIBaseURL() + "/project/" + projectIdentifier() + "/status/",
 		headers: {
 			'Authorization': 'AccountToken ' + getToken(),
 		}
